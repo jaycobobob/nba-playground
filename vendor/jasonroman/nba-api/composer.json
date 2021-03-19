@@ -1,0 +1,44 @@
+{
+    "name": "jasonroman/nba-api",
+    "type": "library",
+    "description": "PHP Library to request data from various endpoints on NBA websites",
+    "keywords": ["nba", "api"],
+    "homepage": "http://nbasense.com/nba-api/",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Jason Roman",
+            "email": "j@jayroman.com",
+            "homepage": "http://jayroman.com"
+        }
+    ],
+    "require": {
+        "php": ">=7.0",
+        "guzzlehttp/guzzle": ">=6.0",
+        "symfony/validator": ">=3.3",
+        "doctrine/annotations": ">=1.4",
+        "doctrine/cache": ">=1.6",
+        "symfony/finder": ">=3.3",
+        "symfony/intl": ">=3.3"
+    },
+    "require-dev": {
+        "phpunit/phpunit": ">=6.1",
+        "symfony/var-dumper": ">=3.4.x-dev"
+    },
+    "autoload": {
+        "psr-4": {
+            "JasonRoman\\NbaApi\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "JasonRoman\\NbaApi\\Tests\\": "tests/"
+        }
+    },
+    "minimum-stability": "stable",
+    "extra": {
+        "branch-alias": {
+            "dev-master": "1.0-dev"
+        }
+    }
+}
