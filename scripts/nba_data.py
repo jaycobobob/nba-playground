@@ -53,6 +53,9 @@ class NBA:
         return player_stats
 
     def get_all_player_names():
+        '''
+            Returns a list of all active NBA players
+        '''
         url = "https://basketball.realgm.com/nba/players"
         results = requests.get(url, headers = NBA.__headers)
         dom = BeautifulSoup(results.text, "html.parser")
@@ -61,7 +64,14 @@ class NBA:
 
         return out
 
-    def build_player_json(fname):
+    def build_player_json(fname="playerData.js"):
+        '''
+            Creates a file with all NBA player data inside as a json
+            Formats the file in such a way to be readable by JavaScript, with
+            the dataset accessable by the value playerData
+
+            fname:  the name of the file to write to, defaults to playerData.js
+        '''
         outfile = open(fname, "w", encoding="utf-8")
         players = []
         players = [NBA.get_one_player_data(player) for player in NBA.get_all_player_names()]
