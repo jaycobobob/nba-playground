@@ -94549,3 +94549,31 @@ var playerData =
         }
     }
 ]
+var keyHeads =
+[
+    "G",
+    "GS",
+    "MP",
+    "FG",
+    "FGA",
+    "FG%",
+    "3P",
+    "3PA",
+    "3P%",
+    "2P",
+    "2PA",
+    "2P%",
+    "eFG%",
+    "FT",
+    "FTA",
+    "FT%",
+    "ORB",
+    "DRB",
+    "TRB",
+    "AST",
+    "STL",
+    "BLK",
+    "TOV",
+    "PF",
+    "PTS"
+]

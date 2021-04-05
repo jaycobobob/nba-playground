@@ -104,7 +104,20 @@ class NBA:
 
         outfile.write("var playerData =\n")
         outfile.write(dumps(players, sort_keys=False, indent=4))
+        outfile.write("\nvar keyHeads =\n")
+        outfile.write(dumps(NBA.get_per_game_stat_names(), sort_keys=False, indent=4))
         outfile.close()
+
+    def get_per_game_stat_names():
+        url = "https://www.basketball-reference.com/players/m/mitchdo01.html"
+        results = requests.get(url, headers = NBA.__headers)
+        dom = BeautifulSoup(results.text, "html.parser")
+
+        keys = dom.select("#per_game > thead > tr > th")
+        category_heads = [key.text for key in keys][5:]
+
+        return category_heads
+
 
 init_time = datetime.now()
 NBA.build_player_json("scripts/playerData.js")
