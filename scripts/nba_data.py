@@ -4,6 +4,8 @@ from bs4 import BeautifulSoup
 from json import dumps
 import multiprocessing.dummy as mp 
 from datetime import date, datetime
+import string
+
 
 class NBA:
     # Static Variables
@@ -12,31 +14,26 @@ class NBA:
     '''
         BEGIN PRIVATE FUNCTION(S)
     '''
-    def __get_player_url(player_name, id=1):
-        '''
-            Creates a basketball reference url for a specified player
-            player_name: firstName lastName of the player
-        '''
-        player_name = "".join([c for c in player_name if c not in ",.'-"]).lower().split()
-        first_name = player_name[0]
-        last_name = player_name[1]
-        url = "https://www.basketball-reference.com//players/{}/{}{}0{}.html"\
-            .format(last_name[0], last_name[:5], first_name[:2], id)
-        return url
 
     '''
         END PRIVATE FUNCTION(S)
     '''
 
-    def get_one_player_data(player_name, id = 1):
+    def get_one_player_data(url):
         '''
             Collects all the basic stats about a player and returns it as a dictionary
             player_name: firstName lastName of the player
         '''
-        print("DEBUG: Getting player data for {}, attempt {}".format(player_name, id))
-        url = NBA.__get_player_url(player_name, id)
+        
         results = requests.get(url, headers = NBA.__headers)
         dom = BeautifulSoup(results.text, "html.parser")
+        try:
+            player_name = dom.select_one("#meta > div > h1 > span").text
+        except:
+            print("ERROR: Could not access a playername for page: {}".format(url))
+            input("ERROR: Press any key to continue")
+            return []
+        print("DEBUG: Getting player data for {}".format(player_name))
 
         # getting the categories
         player_stats = {}
@@ -54,20 +51,30 @@ class NBA:
                     stats[category_heads[i+5]] = float(data_val.text)
                 except:
                     stats[category_heads[i+5]] = 0.0
-        #if there is a duplicate playerName in NBA history, try to find the one playing today
-        if "2020-21" not in player_stats["statsByYear"]:
-            return NBA.get_one_player_data(player_name, id + 1)
         return player_stats
 
-    def get_all_player_names():
+    def get_all_player_urls():
         '''
-            Returns a list of all active NBA players
+            Returns a list of all Active NBA player URLs
         '''
-        url = "https://basketball.realgm.com/nba/players"
-        results = requests.get(url, headers = NBA.__headers)
-        dom = BeautifulSoup(results.text, "html.parser")
-        players = dom.select('[data-th="Player"]')
-        out = [player.text for player in players]
+        FIND_ONLY_ACTIVE = True
+
+        # add 'LETTER/' where LETTER is the a-z, representing all players whose last name
+        # starts with that letter.
+        url = "https://www.basketball-reference.com/players/"
+
+        out = []
+        for letter in string.ascii_lowercase:
+            print("DEBUG: Getting players whose last name starts with: " + letter)
+            this_url = url + letter + "/"
+            results = requests.get(this_url, headers = NBA.__headers)
+            dom = BeautifulSoup(results.text, "html.parser")
+            for element in dom.select("#players > tbody > tr > th"):
+                strong = element.select_one("strong > a")
+                if strong != None:
+                    out.append("https://www.basketball-reference.com/" + strong["href"])
+                elif not FIND_ONLY_ACTIVE:
+                    out.append("https://www.basketball-reference.com/" + element["href"])
 
         return out
 
@@ -80,12 +87,21 @@ class NBA:
             fname:  the name of the file to write to, defaults to playerData.js
         '''
         # TODO: Change this to get playerdata for all players in NBA History
+        # Currently, there are players whose data is not getting retrieved correctly.
+        # An alternate solution is to directly browse the basketball reference boards
+        # and only include player names in bold (with <strong> tag)
+
+        # multithreading solution
         outfile = open(fname, "w", encoding="utf-8")
         p = mp.Pool(4)
-        players = p.map(NBA.get_one_player_data, NBA.get_all_player_names()) # takes 60 seconds
-        #players = [NBA.get_one_player_data(player) for player in NBA.get_all_player_names()] # takes 200 seconds
+        players = p.map(NBA.get_one_player_data, NBA.get_all_player_urls()) # takes 93 seconds
+        
         p.close()
         p.join()
+
+        # one thread solution
+        #players = [NBA.get_one_player_data(player) for player in NBA.get_all_player_urls()] # takes 186 seconds
+
         outfile.write("var playerData =\n")
         outfile.write(dumps(players, sort_keys=False, indent=4))
         outfile.close()
